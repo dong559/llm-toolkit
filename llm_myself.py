@@ -1,24 +1,38 @@
 import os
-# 本地开发兜底：Clash/V2Ray 等系统代理会把 localhost 请求转发走，导致 ollama 返回 502
-# 让 httpx 对本地地址直连，不经过代理
 os.environ["NO_PROXY"] = "localhost,127.0.0.1,::1"
-
+import logging
 import ollama
 
+# 日志配置
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def chat(messages, temperature=0.8, max_tokens=1000):
 
-    print("正在调用模型...")
+def chat(messages: list,
+         model: str = "deepseek-r1:1.5b",
+         temperature: float = 0.8,
+         max_tokens: int = 1000
+         ) -> str:
+    """调用ollama 本地大模型进行对话"""
+    logger.info(f"正在调用模型{model}...")
+    try:
+        response = ollama.chat(
+            model=model,
+            messages=messages,
+            options={
+                "temperature": temperature,
+                "num_predict": max_tokens
+            }
+        )
+        logger.info("模型返回成功")
+        content = response.get("message", {}).get("content", "")
+        return content
+    except Exception as e:
+        logger.exception(f"调用模型{model}时发生异常: {str(e)}")
+        raise e
 
-    response = ollama.chat(
-        model="deepseek-r1:1.5b",
-        messages=messages,
-        options={
-            "temperature": temperature,
-            "num_predict": max_tokens
-        }
-    )
 
-    print("模型返回成功")
-
-    return response["message"]["content"]
+if __name__ == "__main__":
+    messages = [{"role": "user", "content": "你好"}]
+    res = chat(messages)
+    print("回答：", res)
