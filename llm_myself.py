@@ -33,6 +33,14 @@ def chat(messages: list,
 
 
 if __name__ == "__main__":
-    messages = [{"role": "user", "content": "你好"}]
-    res = chat(messages)
-    print("回答：", res)
+    messages = []
+    print("开始对话，输入 exit 退出")
+    while True:
+        user_input = input("\n请输入你的问题：") # 等待你来输入
+        if user_input.lower() == "exit":
+            print("对话结束")
+            break
+        messages.append({"role": "user", "content": user_input})
+        res = chat(messages)
+        print("回答：", res)
+        messages.append({"role": "assistant", "content": res})
